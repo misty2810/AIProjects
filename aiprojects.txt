@@ -1,0 +1,179 @@
+✅ 1. Dual Maze Navigators
+Problem Definition & Environment
+
+Two agents must explore a maze and collect all scattered keys.
+The maze consists of walls, open cells, and key locations. The environment is partially deterministic, grid-based, and fully observable. Agents share the same map and must avoid re-exploring the same cells unnecessarily.
+
+Agent Architecture Design
+
+Sensing: Reads surrounding cells (walls, keys, visited).
+
+Planning: BFS/DFS for exploring new cells and reaching keys.
+
+Coordination: Shared visited-grid and partition logic to avoid overlap.
+
+Action: Move (up/down/left/right), collect key.
+
+Memory: Stores visited nodes and remaining key positions.
+
+✅ 2. Cleaning Crew Coordination
+Problem Definition & Environment
+
+Two cleaning robots must clean dirty cells in a 2D indoor grid.
+The grid contains obstacles, clean cells, and dirty areas. Robots must plan non-overlapping cleaning regions to maximize efficiency.
+
+Agent Architecture Design
+
+Sensing: Detect dirt, obstacles, and cleaned cells.
+
+Planning: Greedy/BFS/A* for shortest cleaning paths.
+
+Coordination: Shared task list; divide grid into left/right or dynamic zones.
+
+Action: Move, clean.
+
+Memory: Stores cleaned cells and pending dirt locations.
+
+✅ 3. Cooperative Path Planners
+Problem Definition & Environment
+
+Two agents must reach two separate goal points without colliding.
+Movement is synchronous on a grid. Obstacles are present, and agents must plan safe simultaneous routes.
+
+Agent Architecture Design
+
+Sensing: Detect agent positions, obstacles, and goals.
+
+Planning: A* for each agent + collision-avoidance layer.
+
+Coordination: Shared time-step simulation to avoid entering same cell.
+
+Action: Step-by-step movement.
+
+Memory: Stores path history and reservations for future cells.
+
+✅ 4. Warehouse Pickup Team
+Problem Definition & Environment
+
+Agents collect and deliver packages across a warehouse grid with shelves and free paths.
+Packages appear at specific locations. Robots must minimize total travel distance.
+
+Agent Architecture Design
+
+Sensing: Detect package locations, shelves, free paths, and current load.
+
+Planning: A* for movement; greedy or Hungarian algorithm for task assignment.
+
+Coordination: Shared task queue, distance-based allocation.
+
+Action: Pick item, move, drop item.
+
+Memory: Store active tasks, completed deliveries.
+
+✅ 5. Rescue Bot Squad
+Problem Definition & Environment
+
+Two rescue bots must locate and rescue victims inside a maze-like environment.
+Victims may be spread across multiple regions. Obstacles block direct movement.
+
+Agent Architecture Design
+
+Sensing: Detect victims, walls, paths.
+
+Planning: BFS to find shortest routes to victims.
+
+Coordination: Split rescue zones or assign nearest victim to each bot.
+
+Action: Move to victim and rescue.
+
+Memory: Store rescued victims and visited cells.
+
+✅ 6. Dual Drone Delivery
+Problem Definition & Environment
+
+Two aerial drones deliver packages to designated grid locations with minimal overlap.
+The environment includes delivery points and obstacles (e.g., no-fly zones).
+
+Agent Architecture Design
+
+Sensing: Read grid, detect obstacles, delivery destinations.
+
+Planning: A* for flight paths; greedy assignment for delivery tasks.
+
+Coordination: Shared flight plan and conflict avoidance.
+
+Action: Move, deliver payload.
+
+Memory: Stores visited cells and remaining delivery points.
+
+✅ 7. Grid Painting Agents
+Problem Definition & Environment
+
+Two painting robots must cover assigned areas of a grid without painting over each other.
+Cells start unpainted, and the grid may contain obstacles.
+
+Agent Architecture Design
+
+Sensing: Check paint status and obstacles.
+
+Planning: DFS region-based exploration.
+
+Coordination: Divide grid into left/right zones to prevent overlap.
+
+Action: Move, paint cell.
+
+Memory: Maintain visited (painted) map.
+
+✅ 8. Resource Collection Team
+Problem Definition & Environment
+
+Agents collect resources scattered across an open grid.
+Each resource is at a fixed location. Efficiency is measured by resources collected and distance traveled.
+
+Agent Architecture Design
+
+Sensing: Detect resource locations and obstacles.
+
+Planning: BFS for shortest path to resource.
+
+Coordination: Shared priority task queue (nearest-resource selection).
+
+Action: Move and collect resource.
+
+Memory: Track collected resources and remaining tasks.
+
+✅ 9. Cooperative Firefighters
+Problem Definition & Environment
+
+Two agents extinguish fires spreading across a grid over time.
+Fire spreads to adjacent cells each turn, requiring fast cooperative decisions.
+
+Agent Architecture Design
+
+Sensing: Identify fire positions, obstacles, and spread direction.
+
+Planning: BFS to nearest fire; fire-spread simulation.
+
+Coordination: Allocate fire zones to agents and share updates.
+
+Action: Move to fire, extinguish.
+
+Memory: Track extinguished fires and predicted spreads.
+
+✅ 10. Map Exploration Partners
+Problem Definition & Environment
+
+Two agents explore an unknown grid to uncover all reachable cells.
+The map starts as unknown (?) and is revealed as agents explore.
+
+Agent Architecture Design
+
+Sensing: Reveal cell type on entry (free/wall).
+
+Planning: BFS outward expansion.
+
+Coordination: Partition grid into regions (e.g., left/right) to minimize overlap.
+
+Action: Move, mark explored.
+
+Memory: Store explored cells and frontier nodes.
