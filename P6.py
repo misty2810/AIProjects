@@ -1,81 +1,121 @@
-from collections import deque
-import copy
+!pip install scipy matplotlib numpy
 
-grid = [
-    list("A1..F."),
-    list("..#..F"),
-    list(".F..A2"),
-]
-R,C = len(grid), len(grid[0])
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import linear_sum_assignment
+import heapq
+import random
 
-def print_grid(g):
-    for row in g:
-        print("".join(row))
-    print("-" * C)
+# =============== GRID SETUP =======================
+GRID_SIZE = 20
+grid = np.zeros((GRID_SIZE, GRID_SIZE))
 
-fires = [(r,c) for r in range(R) for c in range(C) if grid[r][c]=="F"]
-agents = { "A1": (0,0), "A2": (2,5) }
+# Add random obstacles
+for _ in range(40):
+    grid[random.randint(0, 19)][random.randint(0, 19)] = 1  # 1 = obstacle
 
-def bfs(start, goal):
-    q = deque([(start,0)])
-    seen = {start}
-    while q:
-        (r,c),d = q.popleft()
-        if (r,c) == goal: return d
-        for dr,dc in [(1,0),(-1,0),(0,1),(0,-1)]:
-            nr,nc = r+dr, c+dc
-            if 0<=nr<R and 0<=nc<C and grid[nr][nc] != "#" and (nr,nc) not in seen:
-                seen.add((nr,nc))
-                q.append(((nr,nc), d+1))
-    return 9999
+# Drone bases
+drone_positions = [(0, 0), (19, 19)]
 
-def spread_once(flist):
-    new=[]
-    for r,c in list(flist):
-        for dr,dc in [(1,0),(-1,0),(0,1),(0,-1)]:
-            nr,nc=r+dr,c+dc
-            if 0<=nr<R and 0<=nc<C and grid[nr][nc]=='.':
-                grid[nr][nc]='F'
-                new.append((nr,nc))
-    return flist + new
+# Package delivery locations
+packages = [(random.randint(0, 19), random.randint(0, 19)) for _ in range(6)]
 
-time = 0
-extinguished = {"A1":0,"A2":0}
+# Remove packages that accidentally land on obstacles
+packages = [p for p in packages if grid[p] == 0]
 
-print("Initial Grid")
-print_grid(grid)
+print("Drone Starting Points:", drone_positions)
+print("Package Locations:", packages)
 
-while fires:
-    # fire spreads
-    fires = spread_once(fires)
-    time += 1
 
-    # agents act
-    for agent, pos in agents.items():
-        if not fires: break
+# =============== A* SEARCH =========================
 
-        nearest = min(fires, key=lambda f: abs(f[0]-pos[0])+abs(f[1]-pos[1]))
-        d = bfs(pos, nearest)
-        if d >= 9999:
-            continue
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-        # teleport move
-        agents[agent] = nearest
+def astar(grid, start, goal):
+    if grid[goal] == 1:  # Can't reach if obstacle on target
+        return None
 
-        if nearest in fires:
-            fires.remove(nearest)
-            grid[nearest[0]][nearest[1]] = agent  # show agent extinguished here
-            extinguished[agent] += 1
+    open_set = []
+    heapq.heappush(open_set, (0, start))
+    came_from = {}
 
-    print(f"After time = {time}")
-    print_grid(grid)
+    g_score = {start: 0}
+    f_score = {start: heuristic(start, goal)}
 
-total_extinguished = sum(extinguished.values())
-efficiency = total_extinguished / time if time>0 else 0
+    moves = [(1,0),( -1,0),(0,1),(0,-1)]
 
-print("\nFinal Metrics:")
-print("Time units:", time)
-print("A1 extinguished:", extinguished["A1"])
-print("A2 extinguished:", extinguished["A2"])
-print("Total:", total_extinguished)
-print("Efficiency:", round(efficiency,4))
+    while open_set:
+        current = heapq.heappop(open_set)[1]
+
+        if current == goal:
+            # Reconstruct path
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            path.reverse()
+            return path
+
+        for m in moves:
+            neighbor = (current[0] + m[0], current[1] + m[1])
+
+            if 0 <= neighbor[0] < GRID_SIZE and 0 <= neighbor[1] < GRID_SIZE:
+                if grid[neighbor] == 1: continue  # obstacle
+
+                temp_g = g_score[current] + 1
+
+                if neighbor not in g_score or temp_g < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = temp_g
+                    f_score[neighbor] = temp_g + heuristic(neighbor, goal)
+                    heapq.heappush(open_set, (f_score[neighbor], neighbor))
+
+    return None
+
+
+# =============== COST MATRIX FOR HUNGARIAN =========
+
+cost_matrix = np.zeros((2, len(packages)))
+
+for d in range(2):
+    for p in range(len(packages)):
+        cost_matrix[d][p] = heuristic(drone_positions[d], packages[p])
+
+row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+assignments = {0: [], 1: []}
+for drone, pkg_idx in zip(row_ind, col_ind):
+    assignments[drone].append(packages[pkg_idx])
+
+print("\nPackage Assignment:")
+print(assignments)
+
+
+# =============== PATH SIMULATION ====================
+
+heatmap = np.zeros((GRID_SIZE, GRID_SIZE))
+total_time = 0
+
+for d in range(2):
+    cur_pos = drone_positions[d]
+
+    for target in assignments[d]:
+        path = astar(grid, cur_pos, target)
+
+        if path is not None:
+            for cell in path:
+                heatmap[cell] += 1
+            total_time += len(path)
+            cur_pos = target
+
+print("\nTotal Delivery Time:", total_time)
+
+# =============== HEATMAP OUTPUT =====================
+
+plt.figure(figsize=(6,6))
+plt.title("Drone Coverage Heatmap")
+plt.imshow(heatmap, cmap="hot", interpolation="nearest")
+plt.colorbar()
+plt.show()
